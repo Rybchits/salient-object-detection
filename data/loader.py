@@ -1,8 +1,8 @@
 import os
 import tensorflow as tf
+from data.augmentation import augmentation
 
 from glob import glob
-
 
 def _get_paths(path):
     images = sorted(glob(os.path.join(path, "Image/*")))
@@ -37,33 +37,24 @@ def _preprocess(x, y, image_shape, mask_shape):
         return x, y
 
     images, masks = tf.numpy_function(f, [x, y], [tf.float32, tf.float32])
+    images.set_shape(image_shape)
+    masks.set_shape(mask_shape)
     return images, masks
-
-
-def aug(images, labels):
-    pass
-
-class Augment(tf.keras.layers.Layer):
-  def __init__(self, seed=42):
-    super().__init__()
-    self.augment_inputs = tf.keras.layers.RandomFlip(mode="horizontal", seed=seed)
-    self.augment_labels = tf.keras.layers.RandomFlip(mode="horizontal", seed=seed)
-
-  def call(self, inputs, labels):
-    inputs = self.augment_inputs(inputs)
-    labels = self.augment_labels(labels)
-    return inputs, labels
 
 
 # ./DUTS-TR/
 # ./DUTS-TE/
-def get_dataset(dir_path, image_shape, mask_shape, batch=8):
+def get_dataset(dir_path, image_shape, mask_shape, batch=8, needAugmentation=False):
     x, y = _get_paths(dir_path)
     dataset = tf.data.Dataset.from_tensor_slices((x, y))
-    dataset = dataset.map(lambda x, y: _preprocess(x, y, image_shape, mask_shape)) # AUTOTUNE
+    dataset = dataset.map(lambda x, y: _preprocess(x, y, image_shape, mask_shape), num_parallel_calls=tf.data.AUTOTUNE)
     dataset = dataset.shuffle(buffer_size=1000)
     dataset = dataset.batch(batch)
-    #dataset = dataset.map(Augment()) # num parallel calls AUTOTUNE
+
+    if needAugmentation:
+        dataset = dataset.repeat(2)
+        dataset = dataset.map(lambda x, y: augmentation(x, y), num_parallel_calls=tf.data.AUTOTUNE)
+    
     dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
     return dataset
 
