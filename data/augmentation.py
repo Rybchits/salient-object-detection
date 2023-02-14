@@ -2,7 +2,7 @@ from typing import Tuple
 
 import tensorflow as tf
 
-def _aug_color(image: tf.Tensor) -> tf.Tensor:
+def _aug_color_image(image: tf.Tensor) -> tf.Tensor:
     """Color augmentation
     Args:
         image: Image
@@ -16,7 +16,7 @@ def _aug_color(image: tf.Tensor) -> tf.Tensor:
     return image
 
 
-def _aug_rotate(image: tf.Tensor, mask: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+def _aug_rotate_pair(image: tf.Tensor, mask: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
     """Rotate augmentation
     Args:
         image: Image
@@ -29,5 +29,5 @@ def _aug_rotate(image: tf.Tensor, mask: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor
 
 
 def augmentation(image: tf.Tensor, mask: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
-    image = _aug_color(image)
-    return _aug_rotate(image, mask)
+    image = _aug_color_image(image)
+    return _aug_rotate_pair(image, mask)

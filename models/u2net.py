@@ -40,8 +40,12 @@ class ConvBNReLU(Layer):
 
 
 class RSU7(Layer):
-    def __init__(self, mid_chanels=12, out_chanels=3):
+    def __init__(self, mid_chanels, out_chanels):
         super(RSU7, self).__init__()
+        
+        self.mid_chanels = mid_chanels
+        self.out_chanels = out_chanels
+        
         # encode
         self.conv0 = ConvBNReLU(out_chanels, name="rsu7_conv0")
 
@@ -124,11 +128,23 @@ class RSU7(Layer):
         decode = self.conv1_d(tf.concat([decode, x_skip1], axis=3))
         
         return decode + hxin
+    
+    def get_config(self):
+        config = super().get_config().copy()
+        config.update({
+            'mid_chanels': self.mid_chanels,
+            'out_chanels': self.out_chanels,
+        })
+        return config
 
 
 class RSU6(Layer):
-    def __init__(self, mid_chanels=12, out_chanels=3):
+    def __init__(self, mid_chanels, out_chanels):
         super(RSU6, self).__init__()
+        
+        self.mid_chanels = mid_chanels
+        self.out_chanels = out_chanels
+        
         self.conv0 = ConvBNReLU(out_chanels, name="rsu6_conv0")
 
         self.conv1 = ConvBNReLU(mid_chanels, name="rsu6_conv1")
@@ -195,12 +211,24 @@ class RSU6(Layer):
         decode = self.conv1_d(tf.concat([decode, x_skip1], axis=3))
         
         return decode + hxin
+    
+    def get_config(self):
+        config = super().get_config().copy()
+        config.update({
+            'mid_chanels': self.mid_chanels,
+            'out_chanels': self.out_chanels,
+        })
+        return config
 
 
 
 class RSU5(Layer):
-    def __init__(self, mid_chanels=12, out_chanels=3):
+    def __init__(self, mid_chanels, out_chanels):
         super(RSU5, self).__init__()
+        
+        self.mid_chanels = mid_chanels
+        self.out_chanels = out_chanels
+        
         self.conv0 = ConvBNReLU(out_chanels, name="rsu5_conv0")
         self.conv1 = ConvBNReLU(mid_chanels, name="rsu5_conv1")
 
@@ -258,10 +286,22 @@ class RSU5(Layer):
         
         return decode + hxin
     
+    def get_config(self):
+        config = super().get_config().copy()
+        config.update({
+            'mid_chanels': self.mid_chanels,
+            'out_chanels': self.out_chanels,
+        })
+        return config
+    
 
 class RSU4(Layer):
-    def __init__(self, mid_chanels=12, out_chanels=3):
+    def __init__(self, mid_chanels, out_chanels):
         super(RSU4, self).__init__()
+        
+        self.mid_chanels = mid_chanels
+        self.out_chanels = out_chanels
+        
         self.conv0 = ConvBNReLU(out_chanels, name="rsu4_conv0")
         self.conv1 = ConvBNReLU(mid_chanels, name="rsu4_conv1")
 
@@ -306,16 +346,29 @@ class RSU4(Layer):
         decode =  self.conv1_d(tf.concat([decode, x_skip1], axis=3))
         
         return decode + hxin
+    
+    def get_config(self):
+        config = super().get_config().copy()
+        config.update({
+            'mid_chanels': self.mid_chanels,
+            'out_chanels': self.out_chanels,
+        })
+        return config
 
 
 class RSU4F(Layer):
-    def __init__(self, mid_chanels=12, out_chanels=3):
+    def __init__(self, mid_chanels, out_chanels):
         super(RSU4F, self).__init__()
+        
+        self.mid_chanels = mid_chanels
+        self.out_chanels = out_chanels
+        
         self.conv0 = ConvBNReLU(out_chanels, dirate=1)
         self.conv1 = ConvBNReLU(mid_chanels, dirate=1)
         self.conv2 = ConvBNReLU(mid_chanels, dirate=2)
         self.conv3 = ConvBNReLU(mid_chanels, dirate=4)
         self.conv4 = ConvBNReLU(mid_chanels, dirate=8)
+        
         self.conv3_d = ConvBNReLU(mid_chanels, dirate=4)
         self.conv2_d = ConvBNReLU(mid_chanels, dirate=2)
         self.conv1_d = ConvBNReLU(out_chanels, dirate=1)
@@ -336,6 +389,14 @@ class RSU4F(Layer):
         decode = self.conv1_d(tf.concat([decode, x_skip1], axis=3))
 
         return decode + hxin
+    
+    def get_config(self):
+        config = super().get_config().copy()
+        config.update({
+            'mid_chanels': self.mid_chanels,
+            'out_chanels': self.out_chanels,
+        })
+        return config
 
 
 def U2NET(out_ch=1, shape_image=(None, None, 3)):
