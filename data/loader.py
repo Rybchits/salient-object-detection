@@ -24,13 +24,16 @@ def _load(x, y, image_shape, mask_shape):
 
     image /= 255.0
     mask /= 255.0
+    
+    image.set_shape(image_shape)
+    mask.set_shape(mask_shape)
 
     return image, mask
 
 
 def load_image(path, image_size, num_channels, interpolation="bilinear"):
     """Load an image from a path and resize it."""
-    img = tf.compat.v2.io.read_file(path)
+    img = tf.io.read_file(path)
     img = tf.compat.v2.image.decode_image(img, channels=num_channels, expand_animations=False)
 
     img = tf.compat.v2.image.resize(img, image_size, method=interpolation)
@@ -53,13 +56,12 @@ def load_train_dataset(
     masks_dir_path,
     image_shape,
     mask_shape,
-    buffer_size=5000,
+    buffer_size=1000,
     batch=8,
     needAugmentation=False
 ):
     dataset = (
         load_dataset(images_dir_path, masks_dir_path, image_shape, mask_shape)
-        .cache()
         .shuffle(buffer_size)
         .batch(batch)
     )

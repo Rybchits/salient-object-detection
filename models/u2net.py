@@ -445,5 +445,5 @@ def U2NET(out_ch=1, shape_image=(None, None, 3)):
 
     sig = Activation(tf.nn.sigmoid)
 
-    outputs = tf.stack([sig(fused_output), sig(side1), sig(side2), sig(side3), sig(side4), sig(side5), sig(side6)])
+    outputs = [sig(fused_output), sig(side1), sig(side2), sig(side3), sig(side4), sig(side5), sig(side6)]
     return Model(inputs=inputs, outputs=outputs, name='u2netmodel')
