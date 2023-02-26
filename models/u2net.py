@@ -1,20 +1,6 @@
-from keras import losses, Model, Input
+from keras import Model, Input
 from keras.layers import Layer, Conv2D, ReLU, BatchNormalization, UpSampling2D, MaxPool2D, Activation
 import tensorflow as tf
-
-bce = losses.BinaryCrossentropy()
-
-def bce_loss(y_true, y_pred):
-    y_pred = tf.expand_dims(y_pred, axis=-1)
-    loss0 = bce(y_true, y_pred[0])
-    loss1 = bce(y_true, y_pred[1])
-    loss2 = bce(y_true, y_pred[2])
-    loss3 = bce(y_true, y_pred[3])
-    loss4 = bce(y_true, y_pred[4])
-    loss5 = bce(y_true, y_pred[5])
-    loss6 = bce(y_true, y_pred[6])
-    return loss0 + loss1 + loss2 + loss3 + loss4 + loss5 + loss6
-
 
 class ConvBNReLU(Layer):
     def __init__(self, num_filters, trainable=True, dirate=1, name=None, **kwargs):

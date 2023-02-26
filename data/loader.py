@@ -1,7 +1,7 @@
 import tensorflow as tf
 from glob import glob
 
-from data.augmentation import augmentation
+from data.augmentation import aug_rotate_pair
 
 
 def _get_paths(images_path, masks_path):
@@ -34,9 +34,9 @@ def _load(x, y, image_shape, mask_shape):
 def load_image(path, image_size, num_channels, interpolation="bilinear"):
     """Load an image from a path and resize it."""
     img = tf.io.read_file(path)
-    img = tf.compat.v2.image.decode_image(img, channels=num_channels, expand_animations=False)
+    img = tf.image.decode_image(img, channels=num_channels, expand_animations=False)
 
-    img = tf.compat.v2.image.resize(img, image_size, method=interpolation)
+    img = tf.image.resize(img, image_size, method=interpolation)
         
     img.set_shape((image_size[0], image_size[1], num_channels))
     return img
@@ -58,17 +58,14 @@ def load_train_dataset(
     mask_shape,
     buffer_size=1000,
     batch=8,
-    needAugmentation=False
 ):
     dataset = (
         load_dataset(images_dir_path, masks_dir_path, image_shape, mask_shape)
         .shuffle(buffer_size)
         .batch(batch)
+        .prefetch(buffer_size=tf.data.AUTOTUNE)
+        .map(lambda x, y: aug_rotate_pair(x, y), num_parallel_calls=tf.data.AUTOTUNE)
     )
-
-    if needAugmentation:
-        dataset = dataset.map(lambda x, y: augmentation(x, y), num_parallel_calls=tf.data.AUTOTUNE)
     
-    dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
     return dataset
 
