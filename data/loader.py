@@ -1,16 +1,24 @@
+from typing import Tuple, List, Union
 import tensorflow as tf
-from glob import glob
+from data.augmentation import augmentation
 
-from data.augmentation import aug_rotate_pair
+def _get_paths(dataset_path: Union[str, List]) -> tf.Tensor:
+    images = []
+    masks = []
+
+    if isinstance(dataset_path, str):
+        images = sorted(tf.io.gfile.glob(dataset_path + "**/*.jpg"))
+        masks = sorted(tf.io.gfile.glob(dataset_path + "**/*.png"))
+
+    elif isinstance(dataset_path, List):
+        for path in dataset_path:
+            images += sorted(tf.io.gfile.glob(path + "**/*.jpg"))
+            masks += sorted(tf.io.gfile.glob(path + "**/*.png"))
+        
+    return tf.transpose([images, masks])
 
 
-def _get_paths(images_path, masks_path):
-    images = sorted(glob(images_path))
-    masks = sorted(glob(masks_path))
-    return images, masks
-
-
-def _load(x, y, image_shape, mask_shape):
+def _load(x: str, y: str, image_shape: Tuple, mask_shape: Tuple) -> Tuple:
     def f(x, y):
         x = x.decode()
         y = y.decode()
@@ -31,40 +39,42 @@ def _load(x, y, image_shape, mask_shape):
     return image, mask
 
 
-def load_image(path, image_size, num_channels, interpolation="bilinear"):
+def load_image(path: str, image_size: Tuple, num_channels: int, interpolation="bilinear") -> tf.Tensor:
     """Load an image from a path and resize it."""
     img = tf.io.read_file(path)
     img = tf.image.decode_image(img, channels=num_channels, expand_animations=False)
-
     img = tf.image.resize(img, image_size, method=interpolation)
-        
     img.set_shape((image_size[0], image_size[1], num_channels))
     return img
 
 
-def load_dataset(images_dir_path, masks_dir_path, image_shape, mask_shape):
-    x, y = _get_paths(images_dir_path, masks_dir_path)
-    dataset = (
-        tf.data.Dataset.from_tensor_slices((x, y))
-        .map(lambda x, y: _load(x, y, image_shape, mask_shape), num_parallel_calls=tf.data.AUTOTUNE)
+def load_segmentation_dataset(
+    dir_path: Union[str, List],
+    image_shape: Tuple,
+    mask_shape: Tuple
+) -> tf.data.Dataset:
+    
+    dataset = tf.data.Dataset.from_tensor_slices(_get_paths(dir_path))
+    return dataset.map(
+        lambda pair: _load(pair[0], pair[1], image_shape, mask_shape),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
-    return dataset
 
 
 def load_train_dataset(
-    images_dir_path,
-    masks_dir_path,
-    image_shape,
-    mask_shape,
+    dir_path: Union[str, List],
+    image_shape: Tuple,
+    mask_shape: Tuple,
     buffer_size=1000,
     batch=8,
-):
-    dataset = (
-        load_dataset(images_dir_path, masks_dir_path, image_shape, mask_shape)
+) -> tf.data.Dataset:
+    
+    dataset = ( 
+        load_segmentation_dataset(dir_path, image_shape, mask_shape)
         .shuffle(buffer_size)
         .batch(batch)
         .prefetch(buffer_size=tf.data.AUTOTUNE)
-        .map(lambda x, y: aug_rotate_pair(x, y), num_parallel_calls=tf.data.AUTOTUNE)
+        .map(lambda x, y: augmentation(x, y), num_parallel_calls=tf.data.AUTOTUNE)
     )
     
     return dataset
