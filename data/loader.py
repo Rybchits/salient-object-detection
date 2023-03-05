@@ -1,6 +1,6 @@
 from typing import Tuple, List, Union
 import tensorflow as tf
-from data.augmentation import augmentation
+from data.augmentation import aug_rotate_image_and_mask
 
 def _get_paths(dataset_path: Union[str, List]) -> tf.Tensor:
     images = []
@@ -74,7 +74,7 @@ def load_train_dataset(
         .shuffle(buffer_size)
         .batch(batch)
         .prefetch(buffer_size=tf.data.AUTOTUNE)
-        .map(lambda x, y: augmentation(x, y), num_parallel_calls=tf.data.AUTOTUNE)
+        .map(lambda x, y: aug_rotate_image_and_mask(x, y), num_parallel_calls=tf.data.AUTOTUNE)
     )
     
     return dataset

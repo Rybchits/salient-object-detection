@@ -26,8 +26,3 @@ def aug_rotate_image_and_mask(image: tf.Tensor, mask: tf.Tensor) -> Tuple[tf.Ten
     """
     k = tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32)
     return tf.image.rot90(image, k), tf.image.rot90(mask, k)
-
-
-def augmentation(image: tf.Tensor, mask: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
-    image = aug_color_image(image)
-    return aug_rotate_image_and_mask(image, mask)
