@@ -18,7 +18,7 @@ def _get_paths(dataset_path: Union[str, List]) -> tf.Tensor:
     return tf.transpose([images, masks])
 
 
-def _load(x: str, y: str, image_shape: Tuple, mask_shape: Tuple) -> Tuple:
+def _load(x: str, y: str, image_shape: Tuple, mask_shape: Tuple, needScaling: bool) -> Tuple:
     def f(x, y):
         x = x.decode()
         y = y.decode()
@@ -30,11 +30,13 @@ def _load(x: str, y: str, image_shape: Tuple, mask_shape: Tuple) -> Tuple:
 
     image, mask = tf.numpy_function(f, [x, y], [tf.float32, tf.float32])
 
-    image /= 255.0
-    mask /= 255.0
-    
-    image.set_shape(image_shape)
-    mask.set_shape(mask_shape)
+    if image_shape != None and mask_shape != None:
+        image.set_shape(image_shape)
+        mask.set_shape(mask_shape)
+
+    if needScaling:
+        image /= 255.0
+        mask /= 255.0
 
     return image, mask
 
@@ -43,20 +45,23 @@ def load_image(path: str, image_size: Tuple, num_channels: int, interpolation="b
     """Load an image from a path and resize it."""
     img = tf.io.read_file(path)
     img = tf.image.decode_image(img, channels=num_channels, expand_animations=False)
-    img = tf.image.resize(img, image_size, method=interpolation)
-    img.set_shape((image_size[0], image_size[1], num_channels))
+    
+    if image_size != None:
+        img = tf.image.resize(img, image_size, method=interpolation)
+        img.set_shape((image_size[0], image_size[1], num_channels))
+    
     return img
 
 
 def load_segmentation_dataset(
     dir_path: Union[str, List],
     image_shape: Tuple,
-    mask_shape: Tuple
+    mask_shape: Tuple,
+    needScaling: bool = False,
 ) -> tf.data.Dataset:
-    
     dataset = tf.data.Dataset.from_tensor_slices(_get_paths(dir_path))
     return dataset.map(
-        lambda pair: _load(pair[0], pair[1], image_shape, mask_shape),
+        lambda pair: _load(pair[0], pair[1], image_shape, mask_shape, needScaling),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 
@@ -70,7 +75,7 @@ def load_train_dataset(
 ) -> tf.data.Dataset:
     
     dataset = ( 
-        load_segmentation_dataset(dir_path, image_shape, mask_shape)
+        load_segmentation_dataset(dir_path, image_shape, mask_shape, True)
         .shuffle(buffer_size)
         .batch(batch)
         .prefetch(buffer_size=tf.data.AUTOTUNE)

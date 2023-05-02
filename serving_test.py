@@ -19,21 +19,16 @@ def get_rest_url(model_name='u2net', host='127.0.0.1', port='8501', task='predic
     return url
 
 
-def get_model_prediction(image_path, model_name='u2net'):
+def get_model_prediction(image, model_name='u2net'):
     """ This function sends request to the URL and get prediction in the form of response"""
     url = get_rest_url(model_name)
-    image = load_image(image_path, IMAGE_SHAPE[:-1], IMAGE_SHAPE[-1])
 
-    # add the 4th dimension
-    image = np.expand_dims(image, axis=0)
-    image= image/255
-
-    data = json.dumps({"signature_name": "serving_default", "instances": image.tolist()})
+    data = json.dumps({"signature_name": "serving_default", "instances": image.numpy().tolist()})
     headers = {"content-type": "application/json"}
 
     # Send the post request and get response   
     rv = requests.post(url, data=data, headers=headers)
-    return rv.json()['predictions'][0]
+    return rv.json()['predictions']
 
 
 if __name__ == '__main__':
@@ -41,12 +36,10 @@ if __name__ == '__main__':
     pathfile = random.choice(images)
 
     image = load_image(pathfile, IMAGE_SHAPE[:-1], IMAGE_SHAPE[-1])
-    prediction = get_model_prediction(pathfile)
-
-    out_mask = tf.math.round(prediction['activation'])
+    prediction = get_model_prediction(image)
 
     display(
-        [image, np.multiply(image, out_mask), out_mask], 
+        [image, np.multiply(image, prediction), prediction], 
         ["Input image", "Masked image", "Predicted mask"],
         figsize=(10, 4),
     )
