@@ -57,11 +57,11 @@ def load_segmentation_dataset(
     dir_path: Union[str, List],
     image_shape: Tuple,
     mask_shape: Tuple,
-    needScaling: bool = False,
+    need_scaling: bool = False,
 ) -> tf.data.Dataset:
     dataset = tf.data.Dataset.from_tensor_slices(_get_paths(dir_path))
     return dataset.map(
-        lambda pair: _load(pair[0], pair[1], image_shape, mask_shape, needScaling),
+        lambda pair: _load(pair[0], pair[1], image_shape, mask_shape, need_scaling),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
 

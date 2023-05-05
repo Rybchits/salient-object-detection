@@ -2,8 +2,9 @@ from data.loader import load_segmentation_dataset, load_train_dataset
 from models.u2net import U2NET
 
 import keras
+from keras.metrics import MeanSquaredError, Precision, Recall
 
-TRAIN_DATASETS = ["DUTS-TR"]
+TRAIN_DATASETS = ["DUTS-TR", "DIS5K\DIS-TE1", "DIS5K\DIS-TE2", "DIS5K\DIS-TE3", "DIS5K\DIS-TE4", "DIS5K\DIS-TR", "DIS5K\DIS-VD"]
 TEST_PATH = "./datasets/DUTS-TE/"
 
 IMAGE_SHAPE = (320, 320, 3)
@@ -25,15 +26,16 @@ train_dataset = load_train_dataset(
 test_dataset = load_segmentation_dataset(
     dir_path = TEST_PATH,
     image_shape = IMAGE_SHAPE,
-    mask_shape = MASK_SHAPE
+    mask_shape = MASK_SHAPE,
+    need_scaling = True
 ).batch(BATCH_SIZE)
 
 
 adam = keras.optimizers.Adam(learning_rate=LEARNING_RATE, beta_1=.9, beta_2=.999, epsilon=1e-08)
 bce = keras.losses.BinaryCrossentropy()
 
-model = U2NET(shape_image=IMAGE_SHAPE)
-model.compile(optimizer=adam, loss=bce)
+model = U2NET()
+model.compile(optimizer=adam, loss=bce, metrics=[[MeanSquaredError(), Precision(0.5), Recall(0.5)]] + [None] * 6)
 
 callbacks = [
     keras.callbacks.TensorBoard(log_dir="./logs"),

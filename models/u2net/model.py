@@ -1,5 +1,5 @@
 from keras import Model, Input
-from keras.layers import Conv2D, UpSampling2D, MaxPool2D, Activation, Resizing, Rescaling
+from keras.layers import Conv2D, UpSampling2D, MaxPool2D, Activation, Rescaling
 import tensorflow as tf
 
 from models.u2net.layers import RSU4, RSU4F, RSU5, RSU6, RSU7
