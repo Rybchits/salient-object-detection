@@ -46,6 +46,7 @@ class DisplayWidget extends ConsumerWidget {
                               child: DisplayImage(
                                 element.image!,
                                 title: element.label ?? '',
+                                targetSide: 500,
                               ),
                             ),
                           )

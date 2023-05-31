@@ -8,15 +8,22 @@ class DisplayImage extends ConsumerWidget {
   const DisplayImage(
     this.image, {
     this.title = '',
+    this.targetSide = 320,
     super.key,
   });
 
   final img.Image image;
   final String title;
+  final int? targetSide;
 
   @override
   Widget build(context, ref) {
     final imageManager = ref.watch(imageManagerProvider);
+    img.Image imageForBuild = image;
+
+    if (targetSide != null) {
+      imageForBuild = imageManager.resizeToTargetSide(image, targetSide!);
+    }
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -31,7 +38,7 @@ class DisplayImage extends ConsumerWidget {
             ),
           ),
         FutureBuilder(
-          future: imageManager.convertImageToFlutterUi(image),
+          future: imageManager.convertImageToFlutterUi(imageForBuild),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               return RawImage(image: snapshot.data);

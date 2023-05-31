@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -111,10 +112,10 @@ class ImageTransformationsManager {
   }
 
   ImageMatrix mergeRGBMatrixWithMask(
-      ImageMatrix image,
-      ImageMatrix mask, [
-        List<int> replacedPixel = const [0, 0, 0],
-      ]) {
+    ImageMatrix image,
+    ImageMatrix mask, [
+    List<int> replacedPixel = const [0, 0, 0],
+  ]) {
     assert(image.length == mask.length);
     assert(image[0].length == mask[0].length);
     assert(image[0][0].length == 3 && mask[0][0].length == 1);
@@ -127,5 +128,16 @@ class ImageTransformationsManager {
       }
     }
     return image;
+  }
+
+  img.Image resizeToTargetSide(img.Image image, int targetSide) {
+    final maxSide = max(image.width, image.height);
+    final scaleSide = targetSide / maxSide;
+
+    return img.copyResize(
+      image,
+      width: (image.width * scaleSide).round(),
+      height: (image.height * scaleSide).round(),
+    );
   }
 }
