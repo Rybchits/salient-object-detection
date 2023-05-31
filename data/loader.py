@@ -23,8 +23,8 @@ def _load(x: str, y: str, image_shape: Tuple, mask_shape: Tuple, needScaling: bo
         x = x.decode()
         y = y.decode()
 
-        x = load_image(x, image_shape[:-1], image_shape[-1])
-        y = load_image(y, mask_shape[:-1], mask_shape[-1])
+        x = load_image(x, resizing_size=image_shape[:-1], num_channels=image_shape[-1])
+        y = load_image(y, resizing_size=mask_shape[:-1], num_channels=mask_shape[-1])
 
         return x, y
 
@@ -41,14 +41,20 @@ def _load(x: str, y: str, image_shape: Tuple, mask_shape: Tuple, needScaling: bo
     return image, mask
 
 
-def load_image(path: str, image_size: Tuple, num_channels: int, interpolation="bilinear") -> tf.Tensor:
+def load_image(
+        path: str,
+        num_channels: int, 
+        resizing_size: Tuple = None, 
+        resizing_interpolation="bilinear"
+    ) -> tf.Tensor:
+
     """Load an image from a path and resize it."""
     img = tf.io.read_file(path)
     img = tf.image.decode_image(img, channels=num_channels, expand_animations=False)
     
-    if image_size != None:
-        img = tf.image.resize(img, image_size, method=interpolation)
-        img.set_shape((image_size[0], image_size[1], num_channels))
+    if resizing_size != None and len(resizing_size) == 2:
+        img = tf.image.resize(img, resizing_size, method=resizing_interpolation)
+        img.set_shape((resizing_size[0], resizing_size[1], num_channels))
     
     return img
 

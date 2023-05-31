@@ -1,19 +1,25 @@
 from keras import Model, Input
-from keras.layers import Conv2D, UpSampling2D, MaxPool2D, Activation, Rescaling, Resizing
+from keras.layers import Conv2D, UpSampling2D, MaxPool2D, Activation, Rescaling
 import tensorflow as tf
 
 from models.u2net.layers import RSU4, RSU4F, RSU5, RSU6, RSU7
+from utils.resizing import ResizingExt
+
 
 def export_u2net_model(model, image_height, image_width):
-    @tf.function(input_signature=[tf.TensorSpec([None, None, 3], tf.float32)])
+    @tf.function(input_signature=[tf.TensorSpec([None, None, 3], tf.uint8)])
     def serving_fn(image):
-        image = tf.expand_dims(image, axis=0)
-        processed_img = Resizing(height=image_height, width=image_width)(image)
-        processed_img = Rescaling(1/255)(processed_img)
+        processed_img, input_shape = ResizingExt(height=image_height, width=image_width)(image) # Resize
+        processed_img = Rescaling(1/255)(processed_img)         # Scale
+        processed_img = tf.expand_dims(processed_img, axis=0)
         mask = model(processed_img)[0][0]
+        mask = tf.image.resize(mask, input_shape)
         mask = tf.math.round(mask)
+        mask = tf.cast(mask, tf.uint8)
         return {"mask": mask}
+    
     return serving_fn
+
 
 def U2NET(out_ch=1, shape_image=(None, None, 3)):
     inputs = Input(shape=shape_image)
